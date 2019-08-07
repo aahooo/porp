@@ -1,3 +1,0 @@
-SocksPort 0
-HiddenServiceDir /OR
-HiddenServicePort 80 127.0.0.1:7410

@@ -76,19 +76,70 @@ void FreeMemory(void* POINTER, int SIZE, BOOL IsPointer)
 	}
 }
 
-char* GetFingerprint()
+
+int GenerateTorrc(int PORT)
 {
-	return "Finger";
+	char *torrc = AllocateMemory(16);
+	sprintf(torrc, "SocksPort %d", PORT);
+	return torrc;
+}
+
+int EstablishTOR(int PORT)
+{
+	int stat = 0;
+	char* torrcString;
+	FILE *TorFILE;
+	FILE *TorHandler;
+
+	TorFILE = fopen("Tor/tor.exe", 'r');
+	if(TorFILE == NULL)		//Checking if tor.exe Exists
+	{
+		return -1;
+	}
+
+	torrcString = GenerateTorrc(PORT);
+	TorFILE = fopen("Tor/torrc", 'w');
+	if(TorFILE == NULL)
+	{
+		return -1;
+	}
+	fputs(torrcString, TorFILE);
+	fclose(TorFILE);
+
+
+	TorHandler = _popen("Tor/tor.exe -f Tor/torrc", 'r');
+	if(TorHandler == NULL)		//Checking if the tor instance was initiated
+	{
+		return -1;
+	}
+
+	char* Buffer = AllocateMemory(2048);
+	while(1)		//TODO setup a time out for this loop
+	{
+		fgets(Buffer, 2047, TorHandler);
+		if(strstr(Buffer, "100%%") != NULL)		//Tor is running
+		{
+			return 0;
+		}
+		else if(strstr(Buffer, "[err]") != NULL)
+		{
+			return 1;
+		}
+		else continue;
+	}
+	
+
+
 }
 
 
 int _Initialize(WSADATA wsadata)	//TODO Fix this shit
 {
 	if (WSAStartup(MAKEWORD(2, 2), &wsadata) != 0) {
-		return 1;
+		return 1;		//Failed to initialize WSA
 	}
 	else {
-		return 0;
+		return 0;		//WSA was successfully initialized
 	}
 }
 
@@ -114,7 +165,7 @@ int _ConnectSimplified(SOCKET sock, struct AddressFormat* address_ip)
 }
 
 
-int _Connect(SOCKET sock, struct sockaddr* addr)
+int _Connect(SOCKET sock, struct sockaddr* addr) //TODO set sockets to be non-blocking
 {
 	int status = 0;
 	int ADDRSIZE = sizeof(struct sockaddr_in);

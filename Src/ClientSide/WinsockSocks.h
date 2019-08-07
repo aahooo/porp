@@ -62,5 +62,5 @@ void die();
 
 /**********Multi Processing Functions**********/
 
-int EstablishTOR(int PORT);
-int GetTORState(int ProcessHandle);
+int EstablishTOR(int PORT); //Returns 0 on success, -1 on cirtical failure and 1 on TOR error
+int GenerateTorrc(int PORT);
